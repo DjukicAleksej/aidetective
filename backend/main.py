@@ -1,98 +1,125 @@
 from flask import Flask, request
 from flask_sock import Sock
+from flask_cors import CORS
+import duckdb
 import json
+import uuid
+
 
 app = Flask(__name__)
 sock = Sock(app)
+CORS(app)
+conn = duckdb.connect("database.db")
+
+conn.sql("CREATE TABLE IF NOT EXISTS cases (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), detective VARCHAR, name VARCHAR, short_description VARCHAR DEFAULT NULL)")
+conn.sql("CREATE TABLE IF NOT EXISTS parties (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, name VARCHAR, role VARCHAR, description VARCHAR DEFAULT NULL, alibi VARCHAR DEFAULT NULL)")
+conn.sql("CREATE TABLE IF NOT EXISTS evidences (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, status VARCHAR, place VARCHAR, description VARCHAR, name VARCHAR, suspects UUID[])")
+conn.sql("CREATE TABLE IF NOT EXISTS theories (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, name VARCHAR, content VARCHAR)")
+conn.sql("CREATE TABLE IF NOT EXISTS timelines_events (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, timestamp TIMESTAMP, place VARCHAR, status VARCHAR, name VARCHAR, description VARCHAR)")
+
+"""
+"timestamp": 1767634499,
+"place": "Garden",
+"status": "unsure",
+"name": "Tongyu cut the grass",
+"description": "According to Tongyu, she cut the grass with the lawnmower
+"""
+
+def fetch_dict(result, size=-1):
+    if size == -1:
+        rows = result.fetchall()
+    else:
+        rows = result.fetchmany(size)
+
+    columns = [desc[0] for desc in result.description]
+    data = []
+    for row in rows:
+        row_data = {}
+        for i, value in enumerate(row):
+            if type(value) == uuid.UUID:
+                value = str(value)
+
+            row_data[columns[i]] = value
+
+        data.append(row_data)
+
+    return data
+
 
 @app.route("/api/get_cases", methods=["GET"])
 def get_cases():
-    return [
-        {
-            "id": "15293657-fcf7-4382-b474-d0c1753b6eb8",
-            "name": "Aunt Bethesda",
-            "short_description": "Aunt Bethesda was murdered on the 31st December of 2025 by one of its staff member"
-        }
-    ]
+    result = conn.execute("SELECT id, name, short_description FROM cases;")
+    data = fetch_dict(result)
+
+    return data
 
 
 @app.route("/api/parties", methods=["POST"])
 def get_parties():
     data = request.get_json()
-    if "caseid" not in data:
+    caseid = data.get("caseid")
+    if caseid is None:
         return {"error": True, "message": "Missing caseid"}, 400
 
-    return {
-        "c1976a46-3558-429b-9b41-0b068ebece23": {
-            "name": "Euan",
-            "role": "suspect",
-            "description": "Ginger",
-            "alibi": "Drinking tea"
-        },
-        "0c2ee2f4-284e-4d2b-9458-b121825ccd44": {
-            "name": "Jane",
-            "role": "suspect",
-            "description": "",
-            "alibi": "frauding hcb by buying dubai chocolat"
-        },
-        "9a27a7c1-d8d5-4799-958d-5b587a3faf0a": {
-            "name": "Renran",
-            "role": "detective",
-            "description":  "",
-            "alibi": "learning french la baguette et le croissant"
-        },
-        "0ae7905b-c631-4490-ad0d-9d1fd27dad3d": {
-            "name": "Tongyu",
-            "role": "suspect",
-            "description": "Gardener",
-            "alibi": "In the greenhouse"
+    result = conn.execute("SELECT id, name, role, description, alibi FROM parties WHERE case_id=?", (caseid, ))
+    data = fetch_dict(result)
+    response_data = {}
+
+    for row in data:
+        response_data[row['id']] = {
+            "name": row['name'],
+            "description": row.get('description'),
+            "alibi": row.get('alibi'),
+            "role": row.get('role')
         }
-    }
+
+    return response_data
+
 
 @app.route("/api/evidences", methods=["POST"])
 def get_evidences():
     data = request.get_json()
-    if "caseid" not in data:
+    caseid = data.get("caseid")
+    if caseid is None:
         return {"error": True, "message": "Missing caseid"}, 400
 
-    return {
-        "cebce509-e65e-4830-9913-1b9e41f6407d": {
-            "status": "confirmed",
-            "place": "Garden",
-            "description": "The grass is messy which mean the gardener didn't done it",
-            "name": "Uncut grass",
-            "suspects": ["0ae7905b-c631-4490-ad0d-9d1fd27dad3d"]
-        }
-    }
+    result = conn.execute("SELECT id, case_id, status, place, description, name, suspects FROM evidences WHERE case_id=?", (caseid, ))
+    data = fetch_dict(result)
+
+    return data
 
 @app.route("/api/theories", methods=["POST"])
 def get_theories():
     data = request.get_json()
-    if "caseid" not in data:
+    caseid = data.get('caseid')
+    if caseid is None:
         return {"error": True, "message": "Missing caseid"}, 400
 
-    return {
-        "be648140-aea2-4682-b841-73b3afa05e2a": {
-            "name": "Euan killed her for money",
-            "content": "Euan killed Aunt Bethesda because he's broke and need money for teens and cosplay leprechaun"
+    result = conn.execute("SELECT id, name, content FROM theories WHERE case_id=?", (caseid, ))
+    data = fetch_dict(result)
+    response_data = {}
+
+    for row in data:
+        response_data[row['id']] = {
+            "name": row['name'],
+            "content": row['content']
         }
-    }
+    
+    return response_data
+
 
 @app.route("/api/timelines", methods=["POST"])
 def get_timelines():
     data = request.get_json()
-    if "caseid" not in data:
+    caseid = data.get('caseid')
+    if caseid is None:
         return {"error": True, "message": "Missing caseid"}, 400
 
-    return [
-        {
-            "timestamp": 1767634499,
-            "place": "Garden",
-            "status": "unsure",
-            "name": "Tongyu cut the grass",
-            "description": "According to Tongyu, she cut the grass with the lawnmower"
-        }
-    ]
+    result = conn.execute("SELECT timestamp, place, status, name, description FROM timelines_events WHERE case_id=? ORDER BY timestamp;", (caseid, ))
+    data = fetch_dict(result)
+
+    return data
+
 
 @sock.route("/api/chat")
 def chat(ws):

@@ -1,3 +1,5 @@
 Flask
+duckdb
 requests
 flask-sock
+flask-cors
