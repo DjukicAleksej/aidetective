@@ -65,6 +65,34 @@ def get_evidences():
         }
     }
 
+@app.route("/api/theories", methods=["POST"])
+def get_theories():
+    data = request.get_json()
+    if "caseid" not in data:
+        return {"error": True, "message": "Missing caseid"}, 400
+
+    return {
+        "be648140-aea2-4682-b841-73b3afa05e2a": {
+            "name": "Euan killed her for money",
+            "content": "Euan killed Aunt Bethesda because he's broke and need money for teens and cosplay leprechaun"
+        }
+    }
+
+@app.route("/api/timelines", methods=["POST"])
+def get_timelines():
+    data = request.get_json()
+    if "caseid" not in data:
+        return {"error": True, "message": "Missing caseid"}, 400
+
+    return [
+        {
+            "timestamp": 1767634499,
+            "place": "Garden",
+            "status": "unsure",
+            "name": "Tongyu cut the grass",
+            "description": "According to Tongyu, she cut the grass with the lawnmower"
+        }
+    ]
 
 @sock.route("/api/chat")
 def chat(ws):
