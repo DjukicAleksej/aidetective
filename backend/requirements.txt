@@ -1,5 +1,5 @@
-Flask
+fastapi
+uvicorn
 duckdb
 requests
-flask-sock
-flask-cors
+python-multipart
