@@ -47,10 +47,23 @@ def get_cases():
     return data
 
 
-@app.route("/api/parties", methods=["POST", "PUT"])
+@app.route("/api/parties", methods=["POST", "PUT", "DELETE", "PATCH"])
 def get_parties():
-    if request.method == "PUT":
-        data = request.get_json()
+    data = request.get_json()
+
+    if request.method == "DELETE":
+        party_id = data.get("id")
+        if party_id is None:
+            return {"error": True, "message": "Missing id"}, 400
+        conn.execute("DELETE FROM parties WHERE id=?", (party_id,))
+        conn.commit()
+        return {"success": True}
+
+    elif request.method == "PATCH":
+        party = data['partyid']
+        party['partyid']
+
+    elif request.method == "PUT":
         caseid = data['caseid']
         name = data['name']
         role = data['role']
@@ -62,7 +75,6 @@ def get_parties():
         return str(conn.fetchone()[0])
 
     elif request.method == "POST":
-        data = request.get_json()
         caseid = data.get("caseid")
         if caseid is None:
             return {"error": True, "message": "Missing caseid"}, 400
@@ -82,45 +94,92 @@ def get_parties():
         return response_data
 
 
-@app.route("/api/evidences", methods=["POST"])
+@app.route("/api/evidences", methods=["POST", "PUT", "DELETE"])
 def get_evidences():
     data = request.get_json()
+
+    if request.method == "DELETE":
+        evidence_id = data.get("id")
+        if evidence_id is None:
+            return {"error": True, "message": "Missing id"}, 400
+        conn.execute("DELETE FROM evidences WHERE id=?", (evidence_id,))
+        conn.commit()
+        return {"success": True}
+
     caseid = data.get("caseid")
     if caseid is None:
         return {"error": True, "message": "Missing caseid"}, 400
 
-    result = conn.execute("SELECT id, case_id, status, place, description, name, suspects FROM evidences WHERE case_id=?", (caseid, ))
-    data = fetch_dict(result)
+    if request.method == "PUT":
+        name = data['name']
+        status = data.get('status', 'unknown')
+        place = data.get('place')
+        description = data.get('description')
+        suspects = data.get('suspects', [])
 
-    return data
+        result = conn.execute("INSERT INTO evidences (case_id, name, status, place, description, suspects) VALUES (?, ?, ?, ?, ?, ?) RETURNING id", (caseid, name, status, place, description, suspects))
+        conn.commit()
+        return str(conn.fetchone()[0])
 
-@app.route("/api/theories", methods=["POST"])
+    elif request.method == "POST":
+        result = conn.execute("SELECT id, case_id, status, place, description, name, suspects FROM evidences WHERE case_id=?", (caseid, ))
+        data = fetch_dict(result)
+
+        return data
+
+@app.route("/api/theories", methods=["POST", "PUT", "DELETE"])
 def get_theories():
     data = request.get_json()
+
+    if request.method == "DELETE":
+        theory_id = data.get("id")
+        if theory_id is None:
+            return {"error": True, "message": "Missing id"}, 400
+        conn.execute("DELETE FROM theories WHERE id=?", (theory_id,))
+        conn.commit()
+        return {"success": True}
+
     caseid = data.get('caseid')
     if caseid is None:
         return {"error": True, "message": "Missing caseid"}, 400
 
-    result = conn.execute("SELECT id, name, content FROM theories WHERE case_id=?", (caseid, ))
-    data = fetch_dict(result)
-    response_data = {}
+    if request.method == "PUT":
+        name = data['name']
+        content = data.get('content', '')
 
-    for row in data:
-        response_data[row['id']] = {
-            "name": row['name'],
-            "content": row['content']
-        }
-    
-    return response_data
+        result = conn.execute("INSERT INTO theories (case_id, name, content) VALUES (?, ?, ?) RETURNING id", (caseid, name, content))
+        conn.commit()
+        return str(conn.fetchone()[0])
+
+    elif request.method == "POST":
+        result = conn.execute("SELECT id, name, content FROM theories WHERE case_id=?", (caseid, ))
+        data = fetch_dict(result)
+        response_data = {}
+
+        for row in data:
+            response_data[row['id']] = {
+                "name": row['name'],
+                "content": row['content']
+            }
+        
+        return response_data
 
 
-@app.route("/api/timelines", methods=["POST", "PUT"])
+@app.route("/api/timelines", methods=["POST", "PUT", "DELETE"])
 def get_timelines():
     data = request.get_json()
+
+    if request.method == "DELETE":
+        event_id = data.get("id")
+        if event_id is None:
+            return {"error": True, "message": "Missing id"}, 400
+        conn.execute("DELETE FROM timelines_events WHERE id=?", (event_id,))
+        conn.commit()
+        return {"success": True}
+
     caseid = data.get('caseid')
     if caseid is None:
         return {"error": True, "message": "Missing caseid"}, 400
-
 
     if request.method == "PUT":
         timestamp = data['timestamp']
@@ -134,7 +193,7 @@ def get_timelines():
         return str(conn.fetchone()[0])
 
     elif request.method == "POST":
-        result = conn.execute("SELECT epoch_ms(timestamp) AS timestamp, place, status, name, description FROM timelines_events WHERE case_id=? ORDER BY timestamp;", (caseid, ))
+        result = conn.execute("SELECT id, epoch_ms(timestamp) AS timestamp, place, status, name, description FROM timelines_events WHERE case_id=? ORDER BY timestamp;", (caseid, ))
         data = fetch_dict(result)
 
         return data
