@@ -40,8 +40,31 @@ def get_parties():
             "role": "detective",
             "description":  "",
             "alibi": "learning french la baguette et le croissant"
+        },
+        "0ae7905b-c631-4490-ad0d-9d1fd27dad3d": {
+            "name": "Tongyu",
+            "role": "suspect",
+            "description": "Gardener",
+            "alibi": "In the greenhouse"
         }
     }
+
+@app.route("/api/evidences", methods=["POST"])
+def get_evidences():
+    data = request.get_json()
+    if "caseid" not in data:
+        return {"error": True, "message": "Missing caseid"}, 400
+
+    return {
+        "cebce509-e65e-4830-9913-1b9e41f6407d": {
+            "status": "confirmed",
+            "place": "Garden",
+            "description": "The grass is messy which mean the gardener didn't done it",
+            "name": "Uncut grass",
+            "suspects": ["0ae7905b-c631-4490-ad0d-9d1fd27dad3d"]
+        }
+    }
+
 
 @sock.route("/api/chat")
 def chat(ws):
@@ -55,7 +78,7 @@ def chat(ws):
 
         if op == 'send_message':
             message = data['message']
-            ws.send(json.dumps({'op': 'send_message', 'message': f'yeah {opcount}'}))
+            ws.send(json.dumps({'op': 'send_message', 'message': f'{opcount} {message}'}))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0")
