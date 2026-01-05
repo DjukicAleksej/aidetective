@@ -39,12 +39,51 @@ def fetch_dict(result, size=-1):
     return data
 
 
-@app.route("/api/get_cases", methods=["GET"])
+@app.route("/api/cases", methods=["GET", "PUT", "DELETE", "PATCH"])
 def get_cases():
-    result = conn.execute("SELECT id, name, short_description FROM cases;")
-    data = fetch_dict(result)
+    if request.method == "GET":
+        result = conn.execute("SELECT id, name, short_description FROM cases;")
+        data = fetch_dict(result)
+        return data
 
-    return data
+    data = request.get_json()
+
+    if request.method == "DELETE":
+        case_id = data.get("id")
+        if case_id is None:
+            return {"error": True, "message": "Missing id"}, 400
+        conn.execute("DELETE FROM parties WHERE case_id=?", (case_id,))
+        conn.execute("DELETE FROM evidences WHERE case_id=?", (case_id,))
+        conn.execute("DELETE FROM theories WHERE case_id=?", (case_id,))
+        conn.execute("DELETE FROM timelines_events WHERE case_id=?", (case_id,))
+        conn.execute("DELETE FROM cases WHERE id=?", (case_id,))
+        conn.commit()
+        return {"success": True}
+
+    elif request.method == "PATCH":
+        case_id = data.get("id")
+        if case_id is None:
+            return {"error": True, "message": "Missing id"}, 400
+        keys = ['name', 'short_description', 'detective']
+
+        for key in keys:
+            if key not in data:
+                continue
+            conn.execute(f"UPDATE cases SET {key}=? WHERE id=?", (data[key], case_id))
+
+        conn.commit()
+        return {"success": True}
+
+    elif request.method == "PUT":
+        name = data.get('name')
+        if name is None:
+            return {"error": True, "message": "Missing name"}, 400
+        detective = data.get('detective')
+        short_description = data.get('short_description')
+
+        conn.execute("INSERT INTO cases (name, detective, short_description) VALUES (?, ?, ?) RETURNING id;", (name, detective, short_description))
+        conn.commit()
+        return str(conn.fetchone()[0])
 
 
 @app.route("/api/parties", methods=["POST", "PUT", "DELETE", "PATCH"])
@@ -61,7 +100,16 @@ def get_parties():
 
     elif request.method == "PATCH":
         party = data['partyid']
-        party['partyid']
+        keys = ['name', 'role', 'description', 'alibi']
+
+        for key in keys:
+            if key not in data:
+                continue
+
+            conn.execute(f"UPDATE parties SET {key}=? WHERE id=?", (data[key], party, ))
+
+        conn.commit()
+        return {"success": True}
 
     elif request.method == "PUT":
         caseid = data['caseid']
@@ -94,7 +142,7 @@ def get_parties():
         return response_data
 
 
-@app.route("/api/evidences", methods=["POST", "PUT", "DELETE"])
+@app.route("/api/evidences", methods=["POST", "PUT", "DELETE", "PATCH"])
 def get_evidences():
     data = request.get_json()
 
@@ -103,6 +151,20 @@ def get_evidences():
         if evidence_id is None:
             return {"error": True, "message": "Missing id"}, 400
         conn.execute("DELETE FROM evidences WHERE id=?", (evidence_id,))
+        conn.commit()
+        return {"success": True}
+
+    elif request.method == "PATCH":
+        evidence_id = data.get("id")
+        if evidence_id is None:
+            return {"error": True, "message": "Missing id"}, 400
+        keys = ['name', 'status', 'place', 'description', 'suspects']
+
+        for key in keys:
+            if key not in data:
+                continue
+            conn.execute(f"UPDATE evidences SET {key}=? WHERE id=?", (data[key], evidence_id))
+
         conn.commit()
         return {"success": True}
 
@@ -127,7 +189,7 @@ def get_evidences():
 
         return data
 
-@app.route("/api/theories", methods=["POST", "PUT", "DELETE"])
+@app.route("/api/theories", methods=["POST", "PUT", "DELETE", "PATCH"])
 def get_theories():
     data = request.get_json()
 
@@ -136,6 +198,20 @@ def get_theories():
         if theory_id is None:
             return {"error": True, "message": "Missing id"}, 400
         conn.execute("DELETE FROM theories WHERE id=?", (theory_id,))
+        conn.commit()
+        return {"success": True}
+
+    elif request.method == "PATCH":
+        theory_id = data.get("id")
+        if theory_id is None:
+            return {"error": True, "message": "Missing id"}, 400
+        keys = ['name', 'content']
+
+        for key in keys:
+            if key not in data:
+                continue
+            conn.execute(f"UPDATE theories SET {key}=? WHERE id=?", (data[key], theory_id))
+
         conn.commit()
         return {"success": True}
 
@@ -165,7 +241,7 @@ def get_theories():
         return response_data
 
 
-@app.route("/api/timelines", methods=["POST", "PUT", "DELETE"])
+@app.route("/api/timelines", methods=["POST", "PUT", "DELETE", "PATCH"])
 def get_timelines():
     data = request.get_json()
 
@@ -174,6 +250,23 @@ def get_timelines():
         if event_id is None:
             return {"error": True, "message": "Missing id"}, 400
         conn.execute("DELETE FROM timelines_events WHERE id=?", (event_id,))
+        conn.commit()
+        return {"success": True}
+
+    elif request.method == "PATCH":
+        event_id = data.get("id")
+        if event_id is None:
+            return {"error": True, "message": "Missing id"}, 400
+        keys = ['place', 'status', 'name', 'description']
+
+        for key in keys:
+            if key not in data:
+                continue
+            conn.execute(f"UPDATE timelines_events SET {key}=? WHERE id=?", (data[key], event_id))
+
+        if 'timestamp' in data:
+            conn.execute("UPDATE timelines_events SET timestamp=make_timestamp_ms(?) WHERE id=?", (data['timestamp'], event_id))
+
         conn.commit()
         return {"success": True}
 
