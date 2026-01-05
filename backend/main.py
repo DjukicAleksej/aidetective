@@ -49,13 +49,13 @@ def chat(ws):
     while True:
         opcount += 1
         raw = ws.receive()
-        data = json.load(raw)
+        data = json.loads(raw)
 
         op = data.get('op')
 
         if op == 'send_message':
             message = data['message']
-            ws.send(json.dump({'op': 'send_message', 'message': f'yeah {opcount}'}))
+            ws.send(json.dumps({'op': 'send_message', 'message': f'yeah {opcount}'}))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0")
