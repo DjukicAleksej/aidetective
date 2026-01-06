@@ -1,6 +1,7 @@
 from fastapi import FastAPI, WebSocket, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
+from typing import Dict
 from models import *
 import duckdb
 import json
@@ -51,6 +52,10 @@ def fetch_dict(result, size=-1):
         data.append(row_data)
 
     return data
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse('favicon.ico')
 
 
 @app.get("/api/cases", tags=["cases"], response_model=List[ShortCaseModel])

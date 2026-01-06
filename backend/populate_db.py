@@ -6,11 +6,46 @@ import duckdb
 
 conn = duckdb.connect("database.db")
 
-conn.sql("CREATE TABLE cases (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), detective VARCHAR, name VARCHAR, short_description VARCHAR DEFAULT NULL)")
-conn.sql("CREATE TABLE parties (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, name VARCHAR, role VARCHAR, description VARCHAR DEFAULT NULL, alibi VARCHAR DEFAULT NULL, image BLOB DEFAULT NULL)")
-conn.sql("CREATE TABLE evidences (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, status VARCHAR, place VARCHAR, description VARCHAR, name VARCHAR, suspects UUID[])")
-conn.sql("CREATE TABLE theories (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, name VARCHAR, content VARCHAR)")
-conn.sql("CREATE TABLE timelines_events (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, timestamp TIMESTAMP, place VARCHAR, status VARCHAR, name VARCHAR, description VARCHAR)")
+conn.sql("""CREATE TABLE cases (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    detective VARCHAR,
+    name VARCHAR,
+    short_description VARCHAR DEFAULT NULL
+)""")
+conn.sql("""
+CREATE TABLE parties (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    case_id UUID,
+    name VARCHAR,
+    role VARCHAR,
+    description VARCHAR DEFAULT NULL,
+    alibi VARCHAR DEFAULT NULL,
+    image BLOB DEFAULT NULL
+)""")
+conn.sql("""CREATE TABLE evidences (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    case_id UUID,
+    status VARCHAR,
+    place VARCHAR,
+    description VARCHAR,
+    name VARCHAR,
+    suspects UUID[]
+)""")
+conn.sql("""CREATE TABLE theories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    case_id UUID,
+    name VARCHAR,
+    content VARCHAR
+)""")
+conn.sql("""CREATE TABLE timelines_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    case_id UUID,
+    timestamp TIMESTAMP,
+    place VARCHAR,
+    status VARCHAR,
+    name VARCHAR,
+    description VARCHAR
+)""")
 
 res = conn.execute("INSERT INTO cases (name, short_description) VALUES (?, ?) RETURNING id",
                    ("Aunt Bethesda", "Aunt Bethesda was killed on the 31st of December 2025 by one of her closest assistant"))

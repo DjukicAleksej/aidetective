@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field
-from typing import Dict, List, Optional
+from typing import List, Optional
 import uuid
+from pydantic import BaseModel, Field
 
 
 # Cases models
@@ -31,15 +31,15 @@ class CaseUpdateModel(BaseModel):
 class PartyModel(BaseModel):
     name: str = Field(..., description="Name of the party")
     description: str = Field(
-        default="", 
+        default="",
         title="Description of the party"
     )
     alibi: str = Field(
-        default="", 
+        default="",
         title="Alibi of the party"
     )
     role: str = Field(
-        default="", 
+        default="",
         title="Role that they have in the case (suspect, victim, detective...)"
     )
     image: str = Field(
@@ -76,7 +76,10 @@ class EvidenceModel(BaseModel):
     place: Optional[str] = Field(None, description="Location where evidence was found")
     description: Optional[str] = Field(None, description="Description of the evidence")
     name: str = Field(..., description="Name of the evidence")
-    suspects: Optional[List[uuid.UUID]] = Field(default_factory=list, description="List of suspect IDs related to this evidence")
+    suspects: Optional[List[uuid.UUID]] = Field(
+        default_factory=list,
+        description="List of suspect IDs related to this evidence"
+    )
 
 class EvidenceInputModel(BaseModel):
     caseid: uuid.UUID = Field(..., description="ID of the case")
@@ -84,7 +87,10 @@ class EvidenceInputModel(BaseModel):
     status: Optional[str] = Field("unknown", description="Status of the evidence")
     place: Optional[str] = Field(None, description="Location where evidence was found")
     description: Optional[str] = Field(None, description="Description of the evidence")
-    suspects: Optional[List[uuid.UUID]] = Field(default_factory=list, description="List of suspect IDs")
+    suspects: Optional[List[uuid.UUID]] = Field(
+        default_factory=list,
+        description="List of suspect IDs"
+    )
 
 class EvidenceUpdateModel(BaseModel):
     id: uuid.UUID = Field(..., description="ID of the evidence to update")
