@@ -4,7 +4,7 @@
 
 Casemate is an assistant for solving murder cases like Aunt Bethesda...
 
-## Features
+## Features
 
 - Record testimony
 - Timelines events
