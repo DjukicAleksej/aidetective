@@ -3,6 +3,7 @@
 from fastapi import FastAPI, WebSocket, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from typing import Dict
 from models import *
 import duckdb
@@ -10,6 +11,8 @@ import json
 import uuid
 import io
 import threading
+import os
+import httpx
 
 app = FastAPI(
     title="Casemate API",
@@ -360,24 +363,54 @@ def create_timeline_event(data: dict):
     return str(get_conn().fetchone()[0])
 
 
+@app.post("/ai/completions", tags=["ai"])
+async def ai_proxy(request_data: dict):
+    """Proxy AI requests to Hack Club AI, keeping the API key secure server-side"""
+    api_key = os.getenv("HACKCLUB_AI_TOKEN")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://ai.hackclub.com/proxy/v1/chat/completions",
+                json=request_data,
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                },
+                timeout=30.0
+            )
+            return response.json()
+    except httpx.HTTPError as e:
+        raise HTTPException(status_code=502, detail=f"AI service error: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Proxy error: {str(e)}")
+
+
 @app.websocket("/api/chat")
 async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    opcount = 0
-    try:
-        while True:
-            opcount += 1
-            raw = await websocket.receive_text()
-            data = json.loads(raw)
+     await websocket.accept()
+     opcount = 0
+     try:
+         while True:
+             opcount += 1
+             raw = await websocket.receive_text()
+             data = json.loads(raw)
 
-            op = data.get('op')
+             op = data.get('op')
 
-            if op == 'send_message':
-                message = data['message']
-                await websocket.send_text(json.dumps({'op': 'send_message', 'message': f'{opcount} {message}'}))
-    except Exception as e:
-        pass
+             if op == 'send_message':
+                 message = data['message']
+                 await websocket.send_text(json.dumps({'op': 'send_message', 'message': f'{opcount} {message}'}))
+     except Exception as e:
+         pass
 
+
+# Mount static files (frontend) - must be last to avoid intercepting API routes
+dist_path = os.path.join(os.path.dirname(__file__), "..", "dist")
+if os.path.isdir(dist_path):
+    app.mount("/", StaticFiles(directory=dist_path, html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn

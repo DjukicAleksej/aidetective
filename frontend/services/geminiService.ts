@@ -1,6 +1,6 @@
 import { InvestigationCase } from "../types";
 
-const HACK_CLUB_API_URL = "/api/ai/proxy/v1/chat/completions";
+const HACK_CLUB_API_URL = "http://localhost:8000/ai/completions";
 const MODEL = "gpt-4o";
 
 const SYSTEM_INSTRUCTION = `
@@ -15,20 +15,16 @@ Point out contradictions, suggest new lines of inquiry, and challenge the user's
 Keep your responses concise but flavored with your unique personality. 
 Never reveal the "true" answer unless the user presents a flawless accusation. 
 Always refer to the case files provided in the context.
+
+Answer like this is a conversation, dont have tone markers or tell actions in italics
 `;
 
 export class DetectiveAI {
-  private apiKey: string;
-
   constructor() {
-    this.apiKey = import.meta.env.VITE_HACKCLUB_API_KEY || '';
+    // API key is now handled server-side for security
   }
 
   async analyzeCase(activeCase: InvestigationCase, userMessage: string): Promise<string> {
-    if (!this.apiKey) {
-      console.warn("Hack Club API Key is missing. Please set VITE_HACKCLUB_API_KEY in .env.local");
-      return "I seem to have misplaced my notebook! (API Key missing)";
-    }
 
     const caseContext = `
     CURRENT CASE DATA:
@@ -45,8 +41,7 @@ export class DetectiveAI {
       const response = await fetch(HACK_CLUB_API_URL, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           model: MODEL,
@@ -90,11 +85,6 @@ export class DetectiveAI {
   }
 
   async generateAccusationJSON(activeCase: InvestigationCase): Promise<any> {
-    if (!this.apiKey) {
-      console.warn("Hack Club API Key is missing.");
-      throw new Error("API Key missing");
-    }
-
     const caseContext = `
     CASE FILE:
     Title: ${activeCase.title}
@@ -136,8 +126,7 @@ export class DetectiveAI {
       const response = await fetch(HACK_CLUB_API_URL, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           model: MODEL,
