@@ -56,13 +56,17 @@ class DbService {
                 confidence: e.status as 'Confirmed' | 'Questionable' | 'Disputed' || 'Questionable',
                 linkedSuspects: e.suspects || []
             })),
-            timeline: (timelines as any[]).map(t => ({
-                id: t.id,
-                time: t.name, // Mapping 'name' to 'time' string
-                description: t.description || '',
-                involvedSuspects: [], // Backend doesn't support this
-                isGap: false // Backend doesn't support this
-            })),
+            timeline: (timelines as any[]).map(t => {
+                const d = new Date(t.timestamp);
+                return {
+                    id: t.id,
+                    time: t.name || (isNaN(d.getTime()) ? '' : d.toTimeString().split(' ')[0].substring(0, 5)),
+                    date: isNaN(d.getTime()) ? '' : d.toISOString().split('T')[0],
+                    description: t.description || '',
+                    involvedSuspects: [], // Backend doesn't support this
+                    isGap: false // Backend doesn't support this
+                };
+            }),
             theories: Object.entries(theories).map(([id, t]: [string, any]) => ({
                 id,
                 title: t.name,
@@ -226,12 +230,22 @@ class DbService {
 
     // --- Timeline ---
     async addTimelineEvent(caseId: string, event: Partial<TimelineEvent>): Promise<TimelineEvent> {
+        let timestamp = Date.now();
+        if (event.date) {
+            const datePart = event.date;
+            const timePart = event.time && /^\d{2}:\d{2}$/.test(event.time) ? event.time : '00:00';
+            const parsed = new Date(`${datePart}T${timePart}`).getTime();
+            if (!isNaN(parsed)) {
+                timestamp = parsed;
+            }
+        }
+
         const id = await this.fetchJson('/api/timelines', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 caseid: caseId,
-                timestamp: Date.now(), // Dummy timestamp
+                timestamp: timestamp,
                 name: event.time, // Mapping time -> name
                 description: event.description,
                 place: 'unknown',
@@ -242,14 +256,25 @@ class DbService {
     }
 
     async updateTimelineEvent(eventId: string, updates: Partial<TimelineEvent>): Promise<TimelineEvent> {
+        const body: any = {
+            id: eventId,
+            name: updates.time,
+            description: updates.description
+        };
+
+        if (updates.date) {
+            const datePart = updates.date;
+            const timePart = updates.time && /^\d{2}:\d{2}$/.test(updates.time) ? updates.time : '00:00';
+            const parsed = new Date(`${datePart}T${timePart}`).getTime();
+            if (!isNaN(parsed)) {
+                body.timestamp = parsed;
+            }
+        }
+
         await this.fetchJson('/api/timelines', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id: eventId,
-                name: updates.time,
-                description: updates.description
-            })
+            body: JSON.stringify(body)
         });
         return { id: eventId, ...updates } as TimelineEvent;
     }

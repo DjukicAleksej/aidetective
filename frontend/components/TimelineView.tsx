@@ -12,21 +12,23 @@ interface TimelineViewProps {
 const TimelineView: React.FC<TimelineViewProps> = ({ timeline, suspects, onAddEvent, onUpdateEvent, onDeleteEvent }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [newEvent, setNewEvent] = useState<Partial<TimelineEvent>>({ time: '', description: '', involvedSuspects: [] });
+  const [newEvent, setNewEvent] = useState<Partial<TimelineEvent>>({ time: '', date: new Date().toISOString().split('T')[0], description: '', involvedSuspects: [] });
   const [editForm, setEditForm] = useState<Partial<TimelineEvent>>({});
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const sortedTimeline = [...timeline].sort((a, b) => {
+    const dateTimeA = `${a.date}T${a.time}`;
+    const dateTimeB = `${b.date}T${b.time}`;
     return sortOrder === 'asc'
-      ? a.time.localeCompare(b.time)
-      : b.time.localeCompare(a.time);
+      ? dateTimeA.localeCompare(dateTimeB)
+      : dateTimeB.localeCompare(dateTimeA);
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (onAddEvent && newEvent.time && newEvent.description) {
+    if (onAddEvent && newEvent.time && newEvent.date && newEvent.description) {
       onAddEvent(newEvent);
-      setNewEvent({ time: '', description: '', involvedSuspects: [] });
+      setNewEvent({ time: '', date: new Date().toISOString().split('T')[0], description: '', involvedSuspects: [] });
       setIsAdding(false);
     }
   };
@@ -68,6 +70,15 @@ const TimelineView: React.FC<TimelineViewProps> = ({ timeline, suspects, onAddEv
       {isAdding && (
         <form onSubmit={handleSubmit} className="mb-12 p-6 border border-white/10 bg-white/5 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-1">
+              <label className="block text-[10px] uppercase text-white/40 mb-1">Date</label>
+              <input
+                type="date"
+                value={newEvent.date}
+                onChange={e => setNewEvent({ ...newEvent, date: e.target.value })}
+                className="w-full bg-[#0a0a0a] border border-white/10 text-white p-2 text-sm focus:border-[#d4af37] outline-none"
+              />
+            </div>
             <div className="md:col-span-1">
               <label className="block text-[10px] uppercase text-white/40 mb-1">Time</label>
               <input
@@ -130,9 +141,10 @@ const TimelineView: React.FC<TimelineViewProps> = ({ timeline, suspects, onAddEv
 
                 {isEditingItem ? (
                   <form onSubmit={(e) => handleUpdate(e, event)} className="ml-8 space-y-3 relative z-10 bg-white/5 p-4 border border-white/10">
-                    <div className="flex gap-4">
+                    <div className="flex flex-wrap gap-4">
+                      <input type="date" className="w-40 bg-[#0a0a0a] border border-white/10 p-2 text-white" value={editForm.date} onChange={e => setEditForm({ ...editForm, date: e.target.value })} />
                       <input className="w-24 bg-[#0a0a0a] border border-white/10 p-2 text-white" value={editForm.time} onChange={e => setEditForm({ ...editForm, time: e.target.value })} />
-                      <input className="flex-1 bg-[#0a0a0a] border border-white/10 p-2 text-white" value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} />
+                      <input className="flex-1 min-w-[300px] bg-[#0a0a0a] border border-white/10 p-2 text-white" value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} />
                     </div>
                     <div className="flex justify-between items-center">
                       <button type="button" onClick={() => setEditingId(null)} className="text-xs text-white/40 hover:text-white">Cancel</button>
@@ -141,7 +153,8 @@ const TimelineView: React.FC<TimelineViewProps> = ({ timeline, suspects, onAddEv
                   </form>
                 ) : (
                   <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-12">
-                    <div className="min-w-[100px]">
+                    <div className="min-w-[120px]">
+                      <div className="text-[10px] uppercase text-white/30 mb-1">{event.date}</div>
                       <span className="text-xl font-mono text-[#d4af37] font-medium">{event.time}</span>
                     </div>
                     <div className="flex-1">

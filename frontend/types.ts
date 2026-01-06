@@ -23,6 +23,7 @@ export interface Clue {
 export interface TimelineEvent {
   id: string;
   time: string;
+  date: string;
   description: string;
   involvedSuspects: string[];
   isGap?: boolean;

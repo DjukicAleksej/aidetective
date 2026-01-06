@@ -65,18 +65,21 @@ export const MOCK_CASES: InvestigationCase[] = [
       {
         id: 't1',
         time: '08:00 PM',
+        date: '2024-05-15',
         description: 'The dinner party concludes. Guests retire to the drawing room.',
         involvedSuspects: ['s1', 's2', 's3']
       },
       {
         id: 't2',
         time: '09:30 PM',
+        date: '2024-05-15',
         description: 'Arthur Sterling enters his study and locks the door.',
         involvedSuspects: []
       },
       {
         id: 't3',
         time: '10:15 PM',
+        date: '2024-05-15',
         description: 'A brief argument is heard through the study door.',
         involvedSuspects: ['s1'],
         isGap: true
@@ -84,6 +87,7 @@ export const MOCK_CASES: InvestigationCase[] = [
       {
         id: 't4',
         time: '11:00 PM',
+        date: '2024-05-15',
         description: 'Elena Vance knocks on the study door to offer tea. No response.',
         involvedSuspects: ['s2']
       }
