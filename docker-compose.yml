@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aidetective-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/database.db:/app/database.db
+      - ./backend/database.db-wal:/app/database.db-wal
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - aidetective-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aidetective-frontend
+    networks:
+      - aidetective-network
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:alpine
+    container_name: aidetective-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - aidetective-network
+    depends_on:
+      - frontend
+      - backend
+
+networks:
+  aidetective-network:
+    driver: bridge
