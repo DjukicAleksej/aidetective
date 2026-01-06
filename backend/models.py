@@ -30,16 +30,16 @@ class CaseUpdateModel(BaseModel):
 # Party models
 class PartyModel(BaseModel):
     name: str = Field(..., description="Name of the party")
-    description: str = Field(
-        default="",
+    description: Optional[str] = Field(
+        default=None,
         title="Description of the party"
     )
-    alibi: str = Field(
-        default="",
+    alibi: Optional[str] = Field(
+        default=None,
         title="Alibi of the party"
     )
-    role: str = Field(
-        default="",
+    role: Optional[str] = Field(
+        default=None,
         title="Role that they have in the case (suspect, victim, detective...)"
     )
     image: str = Field(
