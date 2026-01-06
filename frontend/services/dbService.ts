@@ -71,6 +71,33 @@ export class DbService {
         } as InvestigationCase;
     }
 
+    async updateCase(caseId: string, updates: Partial<InvestigationCase>): Promise<InvestigationCase> {
+        const payload: any = {
+            title: updates.title,
+            description: updates.description,
+            status: updates.status
+        };
+        Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
+
+        const { data, error } = await supabase
+            .from('cases')
+            .update(payload)
+            .eq('id', caseId)
+            .select()
+            .single();
+
+        if (error) throw error;
+        // Optimization: returns partial but we can merge with current state in UI or re-fetch
+        return {
+            ...data,
+            parties: [], // We don't fetch relations here for performance, UI should merge
+            clues: [],
+            timeline: [],
+            statements: [],
+            theories: []
+        } as InvestigationCase;
+    }
+
     // Add more methods for updating cases, adding suspects, etc.
     async addSuspect(caseId: string, suspect: Partial<Suspect>): Promise<Suspect> {
         // Map frontend CamelCase to DB snake_case

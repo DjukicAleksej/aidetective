@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { InvestigationCase } from '../types';
+import { InvestigationCase, Suspect, TimelineEvent, Clue, Statement, Theory } from '../types';
 import SuspectsView from './SuspectsView';
 import TimelineView from './TimelineView';
 import CluesView from './CluesView';
@@ -21,6 +21,22 @@ import { dbService } from '../services/dbService';
 
 const Workspace: React.FC<WorkspaceProps> = ({ activeCase, onBack, onUpdateCase }) => {
   const [activeTab, setActiveTab] = useState<Tab>('suspects');
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(activeCase.title);
+
+  const saveTitle = async () => {
+    if (editedTitle.trim() && editedTitle !== activeCase.title) {
+      try {
+        await dbService.updateCase(activeCase.id, { title: editedTitle });
+        onUpdateCase({ ...activeCase, title: editedTitle });
+      } catch (e) {
+        console.error("Failed to update case title", e);
+        alert("Failed to save title");
+        setEditedTitle(activeCase.title);
+      }
+    }
+    setIsEditingTitle(false);
+  };
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'suspects', label: 'Suspects', icon: <UserIcon /> },
@@ -31,55 +47,53 @@ const Workspace: React.FC<WorkspaceProps> = ({ activeCase, onBack, onUpdateCase 
     { id: 'accusation', label: 'Accusation', icon: <GavelIcon /> },
   ];
 
-  /* Handlers for adding new items */
-  const handleAddTimelineEvent = async (event: Partial<any>) => {
+  const handleAddSuspect = async (suspect: Partial<Suspect>) => {
+    try {
+      const newSuspect = await dbService.addSuspect(activeCase.id, suspect);
+      onUpdateCase({ ...activeCase, parties: [...activeCase.parties, newSuspect] });
+    } catch (e) {
+      console.error("Failed to add suspect", e);
+      alert("Failed to add suspect");
+    }
+  };
+
+  const handleAddTimelineEvent = async (event: Partial<TimelineEvent>) => {
     try {
       const newEvent = await dbService.addTimelineEvent(activeCase.id, event);
       onUpdateCase({ ...activeCase, timeline: [...activeCase.timeline, newEvent] });
     } catch (e) {
       console.error("Failed to add timeline event", e);
+      alert("Failed to add timeline event");
     }
   };
 
-  const handleAddSuspect = async (suspect: Partial<any>) => {
-    try {
-      // Add default placeholder if missing
-      const s = { ...suspect, role: suspect.role || 'Unknown', description: suspect.description || 'No description' };
-      const newSuspect = await dbService.addSuspect(activeCase.id, s);
-      onUpdateCase({ ...activeCase, parties: [...activeCase.parties, newSuspect] });
-    } catch (e: any) {
-      console.error("Failed to add suspect", e);
-      alert(`Failed to save suspect: ${e.message}`);
-    }
-  };
-
-  const handleAddClue = async (clue: Partial<any>) => {
+  const handleAddClue = async (clue: Partial<Clue>) => {
     try {
       const newClue = await dbService.addClue(activeCase.id, clue);
-      onUpdateCase({ ...activeCase, clues: [...activeCase.clues, newClue] });
-    } catch (e: any) {
+      onUpdateCase({ ...activeCase, clues: [newClue, ...activeCase.clues] });
+    } catch (e) {
       console.error("Failed to add clue", e);
-      alert(`Failed to save clue: ${e.message}`);
+      alert("Failed to add clue");
     }
   };
 
-  const handleAddStatement = async (statement: Partial<any>) => {
+  const handleAddStatement = async (statement: Partial<Statement>) => {
     try {
-      const newSt = await dbService.addStatement(activeCase.id, statement);
-      onUpdateCase({ ...activeCase, statements: [...activeCase.statements, newSt] });
-    } catch (e: any) {
+      const newStatement = await dbService.addStatement(activeCase.id, statement);
+      onUpdateCase({ ...activeCase, statements: [newStatement, ...activeCase.statements] });
+    } catch (e) {
       console.error("Failed to add statement", e);
-      alert(`Failed to save statement: ${e.message}`);
+      alert("Failed to add statement");
     }
   };
 
-  const handleAddTheory = async (theory: Partial<any>) => {
+  const handleAddTheory = async (theory: Partial<Theory>) => {
     try {
-      const newTh = await dbService.addTheory(activeCase.id, theory);
-      onUpdateCase({ ...activeCase, theories: [...activeCase.theories, newTh] });
-    } catch (e: any) {
+      const newTheory = await dbService.addTheory(activeCase.id, theory);
+      onUpdateCase({ ...activeCase, theories: [newTheory, ...activeCase.theories] });
+    } catch (e) {
       console.error("Failed to add theory", e);
-      alert(`Failed to save theory: ${e.message}`);
+      alert("Failed to add theory");
     }
   };
 
@@ -95,9 +109,25 @@ const Workspace: React.FC<WorkspaceProps> = ({ activeCase, onBack, onUpdateCase 
             <BackIcon />
           </button>
           <img src="/logo.png" alt="Logo" className="w-12 h-12 rounded-lg object-cover border border-[#d4af37]/20 hidden lg:block shadow-sm" />
-          <div className="hidden lg:block">
+          <div className="hidden lg:block flex-1 min-w-0">
             <span className="text-[10px] uppercase tracking-widest text-[#d4af37] block">Active Case</span>
-            <h2 className="text-xs font-semibold text-white/80 uppercase truncate">{activeCase.title}</h2>
+            {isEditingTitle ? (
+              <input
+                autoFocus
+                className="w-full bg-[#050505] border border-[#d4af37] text-white text-xs p-1 outline-none"
+                value={editedTitle}
+                onChange={e => setEditedTitle(e.target.value)}
+                onBlur={saveTitle}
+                onKeyDown={e => e.key === 'Enter' && saveTitle()}
+              />
+            ) : (
+              <div className="group flex items-center justify-between">
+                <h2 className="text-xs font-semibold text-white/80 uppercase truncate" title={activeCase.title}>{activeCase.title}</h2>
+                <button onClick={() => setIsEditingTitle(true)} className="opacity-0 group-hover:opacity-100 text-[#d4af37] hover:text-white transition-opacity ml-2">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
