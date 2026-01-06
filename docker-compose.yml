@@ -10,7 +10,5 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/database.db:/app/backend/database.db
-    environment:
-      - PYTHONUNBUFFERED=1
-      - HACKCLUB_AI_TOKEN=sk-hc-v1
+    env_file: ".env"
     restart: unless-stopped
