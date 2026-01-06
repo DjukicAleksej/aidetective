@@ -1,17 +1,13 @@
 import { InvestigationCase, Suspect, Clue, TimelineEvent, Statement, Theory } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-
 export class ApiService {
-  private baseUrl: string;
-
-  constructor(baseUrl: string = API_BASE_URL) {
-    this.baseUrl = baseUrl;
+  private getEndpoint(path: string): string {
+    return `/api${path}`;
   }
 
   async fetchCases(): Promise<InvestigationCase[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/get_cases`);
+      const response = await fetch(this.getEndpoint('/cases'));
       if (!response.ok) throw new Error('Failed to fetch cases');
       return await response.json();
     } catch (error) {
@@ -22,7 +18,7 @@ export class ApiService {
 
   async fetchCase(caseId: string): Promise<InvestigationCase> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/get_cases/${caseId}`);
+      const response = await fetch(this.getEndpoint(`/cases/${caseId}`));
       if (!response.ok) throw new Error('Failed to fetch case');
       return await response.json();
     } catch (error) {
@@ -33,7 +29,7 @@ export class ApiService {
 
   async fetchparties(caseId: string): Promise<Suspect[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/get_cases/${caseId}/parties`);
+      const response = await fetch(this.getEndpoint(`/cases/${caseId}/parties`));
       if (!response.ok) throw new Error('Failed to fetch parties');
       return await response.json();
     } catch (error) {
@@ -44,7 +40,7 @@ export class ApiService {
 
   async fetchClues(caseId: string): Promise<Clue[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/get_cases/${caseId}/clues`);
+      const response = await fetch(this.getEndpoint(`/cases/${caseId}/clues`));
       if (!response.ok) throw new Error('Failed to fetch clues');
       return await response.json();
     } catch (error) {
@@ -55,7 +51,7 @@ export class ApiService {
 
   async fetchTimeline(caseId: string): Promise<TimelineEvent[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/get_cases/${caseId}/timeline`);
+      const response = await fetch(this.getEndpoint(`/cases/${caseId}/timeline`));
       if (!response.ok) throw new Error('Failed to fetch timeline');
       return await response.json();
     } catch (error) {
@@ -66,7 +62,7 @@ export class ApiService {
 
   async fetchStatements(caseId: string): Promise<Statement[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/get_cases/${caseId}/statements`);
+      const response = await fetch(this.getEndpoint(`/cases/${caseId}/statements`));
       if (!response.ok) throw new Error('Failed to fetch statements');
       return await response.json();
     } catch (error) {
@@ -77,7 +73,7 @@ export class ApiService {
 
   async fetchTheories(caseId: string): Promise<Theory[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/get_cases/${caseId}/theories`);
+      const response = await fetch(this.getEndpoint(`/cases/${caseId}/theories`));
       if (!response.ok) throw new Error('Failed to fetch theories');
       return await response.json();
     } catch (error) {
@@ -88,7 +84,7 @@ export class ApiService {
 
   async updateCase(caseId: string, updates: Partial<InvestigationCase>): Promise<InvestigationCase> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/get_cases/${caseId}`, {
+      const response = await fetch(this.getEndpoint(`/cases/${caseId}`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
