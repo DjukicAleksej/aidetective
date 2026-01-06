@@ -96,7 +96,7 @@ def create_case(data: dict):
     conn.commit()
     return str(conn.fetchone()[0])
 
-@app.get("/api/parties/{id}/image")
+@app.get("/api/parties/{id}/image", tags=["parties", "images"])
 def get_party_image(id):
     conn.execute("SELECT image FROM parties WHERE id=?", (id, ))
     result = conn.fetchone()
@@ -108,7 +108,7 @@ def get_party_image(id):
     return StreamingResponse(io.BytesIO(image_data), media_type="image/jpeg")
 
 
-@app.post("/api/parties/{id}/image")
+@app.post("/api/parties/{id}/image", tags=["parties", "images"])
 async def upload_party_image(id: str, file: UploadFile = File(...)):
     image_data = await file.read()
     conn.execute("UPDATE parties SET image=? WHERE id=?", (image_data, id))
