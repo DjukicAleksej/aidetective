@@ -7,7 +7,7 @@ import duckdb
 conn = duckdb.connect("database.db")
 
 conn.sql("CREATE TABLE cases (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), detective VARCHAR, name VARCHAR, short_description VARCHAR DEFAULT NULL)")
-conn.sql("CREATE TABLE parties (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, name VARCHAR, role VARCHAR, description VARCHAR DEFAULT NULL, alibi VARCHAR DEFAULT NULL)")
+conn.sql("CREATE TABLE parties (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, name VARCHAR, role VARCHAR, description VARCHAR DEFAULT NULL, alibi VARCHAR DEFAULT NULL, image BLOB DEFAULT NULL)")
 conn.sql("CREATE TABLE evidences (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, status VARCHAR, place VARCHAR, description VARCHAR, name VARCHAR, suspects UUID[])")
 conn.sql("CREATE TABLE theories (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, name VARCHAR, content VARCHAR)")
 conn.sql("CREATE TABLE timelines_events (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, timestamp TIMESTAMP, place VARCHAR, status VARCHAR, name VARCHAR, description VARCHAR)")
@@ -40,15 +40,16 @@ class Theories:
                      (case_id, self.name, self.content))
 
 class Party:
-    def __init__(self, name, role, description="", alibi=""):
+    def __init__(self, name, role, description="", alibi="", image=None):
         self.name = name
         self.role = role
         self.description = description
         self.alibi = alibi
+        self.image = image
 
     def register(self):
-        conn.execute("INSERT INTO parties (case_id, name, role, description, alibi) VALUES (?, ?, ?, ?, ?)",
-                     (case_id, self.name, self.role, self.description, self.alibi, ));
+        conn.execute("INSERT INTO parties (case_id, name, role, description, alibi, image) VALUES (?, ?, ?, ?, ?, ?)",
+                     (case_id, self.name, self.role, self.description, self.alibi, self.image, ));
 
 
 class Evidence:

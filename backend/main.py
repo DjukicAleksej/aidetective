@@ -1,8 +1,10 @@
-from fastapi import FastAPI, WebSocket, HTTPException
+from fastapi import FastAPI, WebSocket, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 import duckdb
 import json
 import uuid
+import io
 
 
 app = FastAPI()
@@ -18,7 +20,7 @@ app.add_middleware(
 conn = duckdb.connect("database.db")
 
 conn.sql("CREATE TABLE IF NOT EXISTS cases (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), detective VARCHAR, name VARCHAR, short_description VARCHAR DEFAULT NULL)")
-conn.sql("CREATE TABLE IF NOT EXISTS parties (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, name VARCHAR, role VARCHAR, description VARCHAR DEFAULT NULL, alibi VARCHAR DEFAULT NULL)")
+conn.sql("CREATE TABLE IF NOT EXISTS parties (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, name VARCHAR, role VARCHAR, description VARCHAR DEFAULT NULL, alibi VARCHAR DEFAULT NULL, image BLOB DEFAULT NULL)")
 conn.sql("CREATE TABLE IF NOT EXISTS evidences (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, status VARCHAR, place VARCHAR, description VARCHAR, name VARCHAR, suspects UUID[])")
 conn.sql("CREATE TABLE IF NOT EXISTS theories (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, name VARCHAR, content VARCHAR)")
 conn.sql("CREATE TABLE IF NOT EXISTS timelines_events (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), case_id UUID, timestamp TIMESTAMP, place VARCHAR, status VARCHAR, name VARCHAR, description VARCHAR)")
@@ -94,6 +96,24 @@ def create_case(data: dict):
     conn.commit()
     return str(conn.fetchone()[0])
 
+@app.get("/api/parties/{id}/image")
+def get_party_image(id):
+    conn.execute("SELECT image FROM parties WHERE id=?", (id, ))
+    result = conn.fetchone()
+    
+    if result is None or result[0] is None:
+        raise HTTPException(status_code=404, detail="Image not found")
+    
+    image_data = result[0]
+    return StreamingResponse(io.BytesIO(image_data), media_type="image/jpeg")
+
+
+@app.post("/api/parties/{id}/image")
+async def upload_party_image(id: str, file: UploadFile = File(...)):
+    image_data = await file.read()
+    conn.execute("UPDATE parties SET image=? WHERE id=?", (image_data, id))
+    conn.commit()
+    return {"success": True}
 
 @app.post("/api/parties", tags=["parties"])
 def get_parties_by_case(data: dict):
@@ -110,7 +130,8 @@ def get_parties_by_case(data: dict):
             "name": row['name'],
             "description": row.get('description'),
             "alibi": row.get('alibi'),
-            "role": row.get('role')
+            "role": row.get('role'),
+            "image": f"/api/parties/{row['id']}/image"
         }
 
     return response_data
@@ -137,6 +158,13 @@ def patch_party(data: dict):
 
         conn.execute(f"UPDATE parties SET {key}=? WHERE id=?", (data[key], party, ))
 
+    conn.commit()
+    return {"success": True}
+
+
+@app.delete("/api/parties/{id}/image", tags=["parties"])
+def delete_party_image(id: str):
+    conn.execute("UPDATE parties SET image=NULL WHERE id=?", (id,))
     conn.commit()
     return {"success": True}
 
