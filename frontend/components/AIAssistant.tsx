@@ -131,7 +131,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ activeCase, onAnalyzeTimeline
         ))}
         {isTyping && (
           <div className="flex flex-col items-start animate-in fade-in duration-300">
-            <span className="text-[9px] uppercase tracking-[0.2em] text-[#d4af37]/40 mb-2 px-1 font-bold">AI ANALYST IS THINKING</span>
+            <span className="text-[9px] uppercase tracking-[0.2em] text-[#d4af37]/40 mb-2 px-1 font-bold">BENOIT BLANC IS THINKING</span>
             <div className="bg-[#111] border border-white/10 p-4 rounded-sm shadow-xl">
               <div className="flex gap-2">
                 <div className="w-1 h-1 bg-[#d4af37] rounded-full animate-bounce [animation-delay:-0.3s]" />
