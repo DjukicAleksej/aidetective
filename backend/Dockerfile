@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install "fastapi[standard]"
 
 COPY main.py models.py populate_db.py ./
 COPY favicon.ico default_pic.jpg ./
