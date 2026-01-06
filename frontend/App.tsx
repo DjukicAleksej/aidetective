@@ -17,8 +17,6 @@ const App: React.FC = () => {
     loadCases();
   }, []);
 
-  // Removed supabase auth effects
-
   const loadCases = async () => {
     try {
       setIsLoading(true);

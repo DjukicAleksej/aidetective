@@ -1,6 +1,6 @@
 import { InvestigationCase, Suspect, Clue, TimelineEvent, Statement, Theory } from '../types';
 
-const API_BASE_URL = 'https://eqnkswunsxilopcseryw.supabase.co';
+const API_BASE_URL = 'https://acd4725c4ea3.ngrok-free.app';
 
 export class ApiService {
   private baseUrl: string;
