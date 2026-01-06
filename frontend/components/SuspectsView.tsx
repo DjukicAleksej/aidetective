@@ -18,6 +18,51 @@ const SuspectsView: React.FC<SuspectsViewProps> = ({ suspects, statements, onUpd
   const [newSuspect, setNewSuspect] = useState<Partial<Suspect>>({ name: '', role: '', motive: '', alibi: '' });
   const [editForm, setEditForm] = useState<Partial<Suspect>>({});
 
+  const handleImageUpload = async (suspectId: string, file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`https://acd4725c4ea3.ngrok-free.app/api/parties/${suspectId}/image`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        // Update the suspect's imageUrl to point to the API endpoint
+        const suspect = suspects.find(s => s.id === suspectId);
+        if (suspect && onUpdateSuspect) {
+          onUpdateSuspect({ ...suspect, imageUrl: `https://acd4725c4ea3.ngrok-free.app/api/parties/${suspectId}/image` });
+        }
+      } else {
+        console.error('Failed to upload image:', response.statusText);
+        alert('Failed to upload image. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Error uploading image. Please try again.');
+    }
+  };
+
+  const handleSuspectClick = (suspect: Suspect, event: React.MouseEvent) => {
+    if (!suspect.imageUrl) {
+      event.preventDefault();
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) {
+          handleImageUpload(suspect.id, file);
+        }
+      };
+      fileInput.click();
+    } else {
+      setSelectedSuspect(suspect);
+      setIsEditing(false);
+    }
+  };
+
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (onAddSuspect && newSuspect.name && newSuspect.role) {
@@ -109,7 +154,7 @@ const SuspectsView: React.FC<SuspectsViewProps> = ({ suspects, statements, onUpd
         {suspects.map((s) => (
           <div
             key={s.id}
-            onClick={() => { setSelectedSuspect(s); setIsEditing(false); }}
+            onClick={(e) => handleSuspectClick(s, e)}
             className={`cursor-pointer transition-all border p-4 group overflow-hidden relative ${selectedSuspect?.id === s.id ? 'border-[#d4af37] bg-white/5' : 'border-white/5 hover:border-white/20'
               }`}
           >
@@ -123,11 +168,14 @@ const SuspectsView: React.FC<SuspectsViewProps> = ({ suspects, statements, onUpd
               </button>
             )}
 
-            {s.imageUrl && s.imageUrl.startsWith('http') ? (
+            {s.imageUrl ? (
               <img src={s.imageUrl} alt={s.name} className="w-full aspect-[4/5] object-cover mb-4 grayscale group-hover:grayscale-0 transition-all duration-500" />
             ) : (
-              <div className={`w-full aspect-square mb-4 bg-gradient-to-br ${getPlaceholderColor(s.name)} flex items-center justify-center border border-white/5`}>
-                <span className="text-4xl font-serif text-white/20 font-bold">{getInitials(s.name)}</span>
+              <div className={`w-full aspect-square mb-4 bg-gradient-to-br ${getPlaceholderColor(s.name)} flex items-center justify-center border border-white/5 relative group`}>
+                <span className="text-6xl font-serif text-white/20 font-bold group-hover:text-white/40 transition-all duration-300">+</span>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                  <span className="text-xs text-white/60 opacity-0 group-hover:opacity-100 transition-all duration-300 uppercase tracking-widest">Add Image</span>
+                </div>
               </div>
             )}
 

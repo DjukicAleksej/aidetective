@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { supabase } from '../services/supabaseClient';
 
 interface AuthViewProps {
     onAuthSuccess: () => void;
@@ -21,20 +20,15 @@ const AuthView: React.FC<AuthViewProps> = ({ onAuthSuccess }) => {
         setMessage(null);
 
         try {
-            if (isSignUp) {
-                const { error } = await supabase.auth.signUp({
-                    email,
-                    password,
-                });
-                if (error) throw error;
-                setMessage('Registration successful! Please check your email to verify your account.');
+            // Simple mock authentication - replace with your actual auth logic
+            if (email && password) {
+                if (isSignUp) {
+                    setMessage('Registration successful! You can now log in.');
+                } else {
+                    onAuthSuccess();
+                }
             } else {
-                const { error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password,
-                });
-                if (error) throw error;
-                onAuthSuccess();
+                throw new Error('Please enter both email and password.');
             }
         } catch (err: any) {
             setError(err.message || 'An error occurred during authentication.');
