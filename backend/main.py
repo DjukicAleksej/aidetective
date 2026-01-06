@@ -1,3 +1,5 @@
+# Made by humans and not crankers like for the frontend
+
 from fastapi import FastAPI, WebSocket, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
@@ -7,7 +9,6 @@ import duckdb
 import json
 import uuid
 import io
-
 
 app = FastAPI(
     title="Casemate API",
