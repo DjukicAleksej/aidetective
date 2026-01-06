@@ -19,6 +19,12 @@ const SuspectsView: React.FC<SuspectsViewProps> = ({ suspects, statements, onUpd
   const [newSuspect, setNewSuspect] = useState<Partial<Suspect>>({ name: '', role: '', motive: '', alibi: '' });
   const [editForm, setEditForm] = useState<Partial<Suspect>>({});
   const [uploadingSuspectId, setUploadingSuspectId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredSuspects = suspects.filter(s =>
+    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.role.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleImageUpload = async (suspectId: string, file: File) => {
     try {
@@ -94,7 +100,7 @@ const SuspectsView: React.FC<SuspectsViewProps> = ({ suspects, statements, onUpd
       <div className="flex justify-between items-end mb-8">
         <div>
           <h2 className="text-4xl font-serif text-white">Suspect List</h2>
-          <span className="text-xs text-white/30 uppercase tracking-widest">{suspects.length} Individuals of Interest</span>
+          <span className="text-xs text-white/30 uppercase tracking-widest">{filteredSuspects.length} Individuals of Interest</span>
         </div>
         <button
           onClick={() => setIsAdding(!isAdding)}
@@ -102,6 +108,22 @@ const SuspectsView: React.FC<SuspectsViewProps> = ({ suspects, statements, onUpd
         >
           {isAdding ? 'Cancel' : '+ Add Suspect'}
         </button>
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-8">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search suspects by name or role..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-[#0a0a0a] border border-white/10 text-white p-3 pl-10 text-sm focus:border-[#d4af37] outline-none transition-colors"
+          />
+          <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
       </div>
 
       {isAdding && (
@@ -135,7 +157,7 @@ const SuspectsView: React.FC<SuspectsViewProps> = ({ suspects, statements, onUpd
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-        {suspects.map((s) => (
+        {filteredSuspects.map((s) => (
           <div
             key={s.id}
             onClick={() => { setSelectedSuspect(s); setIsEditing(false); }}
