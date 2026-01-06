@@ -14,6 +14,13 @@ const TimelineView: React.FC<TimelineViewProps> = ({ timeline, suspects, onAddEv
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newEvent, setNewEvent] = useState<Partial<TimelineEvent>>({ time: '', description: '', involvedSuspects: [] });
   const [editForm, setEditForm] = useState<Partial<TimelineEvent>>({});
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const sortedTimeline = [...timeline].sort((a, b) => {
+    return sortOrder === 'asc'
+      ? a.time.localeCompare(b.time)
+      : b.time.localeCompare(a.time);
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,14 +44,25 @@ const TimelineView: React.FC<TimelineViewProps> = ({ timeline, suspects, onAddEv
       <div className="flex justify-between items-end mb-12">
         <div>
           <h2 className="text-4xl font-serif text-white">Event Timeline</h2>
-          <span className="text-xs text-white/30 uppercase tracking-widest">Reconstructing the Night</span>
+          <span className="text-xs text-white/30 uppercase tracking-widest">{sortedTimeline.length} Points in Time Recorded</span>
         </div>
-        <button
-          onClick={() => setIsAdding(!isAdding)}
-          className="px-4 py-2 border border-[#d4af37] text-[#d4af37] text-xs uppercase tracking-widest hover:bg-[#d4af37] hover:text-[#0a0a0a] transition-all"
-        >
-          {isAdding ? 'Cancel' : '+ Add Event'}
-        </button>
+        <div className="flex gap-4">
+          <button
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            className="px-4 py-2 border border-white/10 text-white/40 text-[10px] uppercase tracking-widest hover:border-white/30 hover:text-white transition-all flex items-center gap-2"
+          >
+            <svg className={`w-3 h-3 transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+            </svg>
+            {sortOrder === 'asc' ? 'Oldest First' : 'Newest First'}
+          </button>
+          <button
+            onClick={() => setIsAdding(!isAdding)}
+            className="px-4 py-2 border border-[#d4af37] text-[#d4af37] text-xs uppercase tracking-widest hover:bg-[#d4af37] hover:text-[#0a0a0a] transition-all"
+          >
+            {isAdding ? 'Cancel' : '+ Add Event'}
+          </button>
+        </div>
       </div>
 
       {isAdding && (
@@ -85,7 +103,7 @@ const TimelineView: React.FC<TimelineViewProps> = ({ timeline, suspects, onAddEv
         </div>
       ) : (
         <div className="relative pl-8 border-l border-white/10 space-y-12 py-4">
-          {timeline.map((event, idx) => {
+          {sortedTimeline.map((event, idx) => {
             const isEditingItem = editingId === event.id;
             return (
               <div key={event.id || idx} className="relative group">
