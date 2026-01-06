@@ -12,7 +12,7 @@ const AccusationSlides: React.FC<AccusationSlidesProps> = ({ result, onComplete 
     const slides = [
         { type: 'overview', title: 'The Case Overview' },
         { type: 'victim', title: 'The Victim' },
-        { type: 'suspects', title: 'Suspect Analysis' },
+        { type: 'suspects', title: 'Party Analysis' },
         { type: 'evidence', title: 'Key Evidence' },
         { type: 'timeline', title: 'Timeline Reconstruction' },
         { type: 'motive', title: 'The Motive' },

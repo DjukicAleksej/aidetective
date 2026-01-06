@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { InvestigationCase, Suspect, TimelineEvent, Clue, Statement, Theory } from '../types';
-import SuspectsView from './SuspectsView';
+import PartiesView from './PartiesView';
 import TimelineView from './TimelineView';
 import CluesView from './CluesView';
 import StatementsView from './StatementsView';
@@ -15,12 +15,12 @@ interface WorkspaceProps {
   onUpdateCase: (updatedCase: InvestigationCase) => void;
 }
 
-type Tab = 'suspects' | 'timeline' | 'clues' | 'statements' | 'theories' | 'accusation';
+type Tab = 'parties' | 'timeline' | 'clues' | 'statements' | 'theories' | 'accusation';
 
 import { dbService } from '../services/dbService';
 
 const Workspace: React.FC<WorkspaceProps> = ({ activeCase, onBack, onUpdateCase }) => {
-  const [activeTab, setActiveTab] = useState<Tab>('suspects');
+  const [activeTab, setActiveTab] = useState<Tab>('parties');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(activeCase.title);
 
@@ -39,7 +39,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ activeCase, onBack, onUpdateCase 
   };
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'suspects', label: 'Suspects', icon: <UserIcon /> },
+    { id: 'parties', label: 'Parties', icon: <UserIcon /> },
     { id: 'timeline', label: 'Timeline', icon: <ClockIcon /> },
     { id: 'clues', label: 'Evidence', icon: <SearchIcon /> },
     { id: 'statements', label: 'Statements', icon: <DocumentIcon /> },
@@ -47,13 +47,13 @@ const Workspace: React.FC<WorkspaceProps> = ({ activeCase, onBack, onUpdateCase 
     { id: 'accusation', label: 'Accusation', icon: <GavelIcon /> },
   ];
 
-  const handleAddSuspect = async (suspect: Partial<Suspect>) => {
+  const handleAddParty = async (party: Partial<Suspect>) => {
     try {
-      const newSuspect = await dbService.addSuspect(activeCase.id, suspect);
-      onUpdateCase({ ...activeCase, parties: [...activeCase.parties, newSuspect] });
+      const newParty = await dbService.addSuspect(activeCase.id, party);
+      onUpdateCase({ ...activeCase, parties: [...activeCase.parties, newParty] });
     } catch (e) {
-      console.error("Failed to add suspect", e);
-      alert("Failed to add suspect");
+      console.error("Failed to add party", e);
+      alert("Failed to add party");
     }
   };
 
@@ -176,21 +176,21 @@ const Workspace: React.FC<WorkspaceProps> = ({ activeCase, onBack, onUpdateCase 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto relative p-8 lg:p-12">
         <div className="max-w-4xl mx-auto">
-          {activeTab === 'suspects' && (
-            <SuspectsView
-              suspects={activeCase.parties}
+          {activeTab === 'parties' && (
+            <PartiesView
+              parties={activeCase.parties}
               statements={activeCase.statements}
-              onUpdateSuspect={async (suspect) => {
-                const updatedSuspect = await dbService.updateSuspect(suspect.id, suspect);
+              onUpdateParty={async (party) => {
+                const updatedParty = await dbService.updateSuspect(party.id, party);
                 const updated = {
                   ...activeCase,
-                  parties: activeCase.parties.map(s => s.id === suspect.id ? updatedSuspect : s)
+                  parties: activeCase.parties.map(s => s.id === party.id ? updatedParty : s)
                 };
                 onUpdateCase(updated);
               }}
-              onAddSuspect={handleAddSuspect}
-              onDeleteSuspect={async (id) => {
-                if (confirm('Are you sure you want to delete this suspect?')) {
+              onAddParty={handleAddParty}
+              onDeleteParty={async (id) => {
+                if (confirm('Are you sure you want to delete this party?')) {
                   await dbService.deleteSuspect(id);
                   onUpdateCase({ ...activeCase, parties: activeCase.parties.filter(s => s.id !== id) });
                 }
@@ -288,8 +288,8 @@ const Workspace: React.FC<WorkspaceProps> = ({ activeCase, onBack, onUpdateCase 
           activeCase={activeCase}
           onAnalyzeTimeline={() => setActiveTab('timeline')}
           onAnalyzeSuspect={(id) => {
-            setActiveTab('suspects');
-            // Could scroll to suspect or highlight
+            setActiveTab('parties');
+            // Could scroll to party or highlight
           }}
         />
       </aside>

@@ -71,10 +71,10 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ activeCase, onAnalyzeTimeline
       if (onAnalyzeTimeline) onAnalyzeTimeline();
       await handleSend("Analyze the timeline for any inconsistencies, gaps, or suspicious patterns.");
     } else if (type === 'suspect' && id) {
-      const suspect = activeCase.parties.find(s => s.id === id);
-      if (suspect) {
+      const party = activeCase.parties.find(s => s.id === id);
+      if (party) {
         if (onAnalyzeSuspect) onAnalyzeSuspect(id);
-        await handleSend(`Analyze suspect **${suspect.name}**. Examine their alibi, motive, and any statements they've made.`);
+        await handleSend(`Analyze party **${party.name}**. Examine their alibi, motive, and any statements they've made.`);
       }
     }
   };
@@ -156,17 +156,17 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ activeCase, onAnalyzeTimeline
             </svg>
             Analyze Timeline
           </button>
-          {activeCase.parties.slice(0, 2).map(suspect => (
+          {activeCase.parties.slice(0, 2).map(party => (
             <button
-              key={suspect.id}
-              onClick={() => handleQuickPrompt('suspect', suspect.id)}
+              key={party.id}
+              onClick={() => handleQuickPrompt('suspect', party.id)}
               disabled={isTyping}
               className="flex items-center gap-2 px-3 py-1.5 text-[9px] uppercase tracking-widest font-bold bg-[#d4af37]/5 hover:bg-[#d4af37]/10 border border-[#d4af37]/20 text-[#d4af37]/60 hover:text-[#d4af37] transition-all rounded-sm disabled:opacity-30"
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              View: {suspect.name.split(' ')[0]}
+              View: {party.name.split(' ')[0]}
             </button>
           ))}
         </div>

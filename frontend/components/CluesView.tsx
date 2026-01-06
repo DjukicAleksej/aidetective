@@ -111,7 +111,7 @@ const CluesView: React.FC<CluesViewProps> = ({ clues, suspects, onAddClue, onUpd
               </div>
             </div>
             <div>
-              <label className="block text-[10px] uppercase text-white/40 mb-2">Linked Suspects</label>
+              <label className="block text-[10px] uppercase text-white/40 mb-2">Linked Parties</label>
               <div className="flex flex-wrap gap-2">
                 {suspects.map(s => (
                   <button
