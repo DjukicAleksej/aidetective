@@ -1,7 +1,7 @@
 
 import { InvestigationCase, Suspect, Clue, TimelineEvent, Statement, Theory } from '../types';
 
-const API_URL = "https://acd4725c4ea3.ngrok-free.app";
+const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 class DbService {
 

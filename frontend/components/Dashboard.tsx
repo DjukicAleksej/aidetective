@@ -80,7 +80,6 @@ const Dashboard: React.FC<DashboardProps> = ({ cases, onSelectCase, onNewCase, o
                       }`}>
                       {c.status}
                     </span>
-                    <span className="text-[10px] text-white/20 font-mono">#{c.id.split('-')[1]}</span>
                   </div>
 
                   <h3 className="text-2xl font-serif mb-3 group-hover:text-[#d4af37] transition-colors duration-300 text-white font-semibold">
