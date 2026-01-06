@@ -114,7 +114,7 @@ def get_party_image(id):
     result = get_conn().fetchone()
     
     if result is None or result[0] is None:
-        raise HTTPException(status_code=404, detail="Image not found")
+        return FileResponse('default_pic.jpg')
     
     image_data = result[0]
     return StreamingResponse(io.BytesIO(image_data), media_type="image/jpeg")

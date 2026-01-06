@@ -57,8 +57,6 @@ const App: React.FC = () => {
   }, []);
 
   const handleNewCase = useCallback(async () => {
-    if (!session) return;
-
     // Create a new case template
     const newCaseData: Partial<InvestigationCase> = {
       title: 'New Investigation',
@@ -73,7 +71,17 @@ const App: React.FC = () => {
     } catch (err) {
       console.error("Failed to create case:", err);
     }
-  }, [session]);
+  }, []);
+
+  const handleDeleteCase = useCallback(async (caseId: string) => {
+    try {
+      await dbService.deleteCase(caseId);
+      setCases(prev => prev.filter(c => c.id !== caseId));
+    } catch (err) {
+      console.error("Failed to delete case:", err);
+      alert("Failed to delete case. Please try again.");
+    }
+  }, []);
 
   if (isLoading) {
     return (
@@ -103,6 +111,7 @@ const App: React.FC = () => {
           cases={cases}
           onSelectCase={handleSelectCase}
           onNewCase={handleNewCase}
+          onDeleteCase={handleDeleteCase}
         />
       )}
     </div>

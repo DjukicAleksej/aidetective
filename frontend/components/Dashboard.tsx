@@ -5,9 +5,10 @@ interface DashboardProps {
   cases: InvestigationCase[];
   onSelectCase: (c: InvestigationCase) => void;
   onNewCase: () => void;
+  onDeleteCase?: (caseId: string) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ cases, onSelectCase, onNewCase }) => {
+const Dashboard: React.FC<DashboardProps> = ({ cases, onSelectCase, onNewCase, onDeleteCase }) => {
   return (
     <div className="flex-1 overflow-y-auto bg-gradient-to-b from-[#0a0a0a] via-[#0f0f0f] to-[#0a0a0a] p-8 md:p-16">
       <div className="max-w-7xl mx-auto">
@@ -51,6 +52,24 @@ const Dashboard: React.FC<DashboardProps> = ({ cases, onSelectCase, onNewCase })
               >
                 {/* Hover Effect Background */}
                 <div className="absolute inset-0 bg-gradient-to-br from-[#d4af37]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                {/* Delete Button */}
+                {onDeleteCase && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm(`Delete case "${c.title}"? This action cannot be undone.`)) {
+                        onDeleteCase(c.id);
+                      }
+                    }}
+                    className="absolute top-4 right-4 z-20 p-2 text-white/20 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                    title="Delete Case"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                )}
 
                 {/* Content */}
                 <div className="relative z-10">

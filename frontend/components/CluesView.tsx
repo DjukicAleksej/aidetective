@@ -16,6 +16,9 @@ const CluesView: React.FC<CluesViewProps> = ({ clues, suspects, onAddClue, onUpd
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newClue, setNewClue] = useState<Partial<Clue>>({ title: '', description: '', source: '', confidence: 'Questionable' });
   const [editForm, setEditForm] = useState<Partial<Clue>>({});
+  const [filter, setFilter] = useState<'All' | 'Confirmed' | 'Questionable' | 'Disputed'>('All');
+
+  const filteredClues = clues.filter(c => filter === 'All' || c.confidence === filter);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +42,7 @@ const CluesView: React.FC<CluesViewProps> = ({ clues, suspects, onAddClue, onUpd
       <div className="flex justify-between items-end mb-8">
         <div>
           <h2 className="text-4xl font-serif text-white">Evidence Locker</h2>
-          <span className="text-xs text-white/30 uppercase tracking-widest">Tangible Remains</span>
+          <span className="text-xs text-white/30 uppercase tracking-widest">{filteredClues.length} Items Cataloged</span>
         </div>
         <button
           onClick={() => setIsAdding(!isAdding)}
@@ -47,6 +50,20 @@ const CluesView: React.FC<CluesViewProps> = ({ clues, suspects, onAddClue, onUpd
         >
           {isAdding ? 'Cancel' : '+ Add Evidence'}
         </button>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex gap-4 mb-8 border-b border-white/5 pb-4">
+        {['All', 'Confirmed', 'Questionable', 'Disputed'].map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f as any)}
+            className={`text-[10px] uppercase tracking-[0.2em] transition-all ${filter === f ? 'text-[#d4af37] border-b border-[#d4af37] pb-1' : 'text-white/30 hover:text-white/60'
+              }`}
+          >
+            {f}
+          </button>
+        ))}
       </div>
 
       {isAdding && (
@@ -108,8 +125,8 @@ const CluesView: React.FC<CluesViewProps> = ({ clues, suspects, onAddClue, onUpd
                       setNewClue({ ...newClue, linkedSuspects: updated });
                     }}
                     className={`px-3 py-1 text-xs border transition-colors ${(newClue.linkedSuspects || []).includes(s.id)
-                        ? 'bg-[#d4af37] text-black border-[#d4af37]'
-                        : 'bg-transparent border-white/10 text-white/40 hover:border-white/40'
+                      ? 'bg-[#d4af37] text-black border-[#d4af37]'
+                      : 'bg-transparent border-white/10 text-white/40 hover:border-white/40'
                       }`}
                   >
                     {s.name}
@@ -127,7 +144,7 @@ const CluesView: React.FC<CluesViewProps> = ({ clues, suspects, onAddClue, onUpd
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {clues.map((clue) => {
+        {filteredClues.map((clue) => {
           const isEditingItem = editingId === clue.id;
           return (
             <div
@@ -176,8 +193,8 @@ const CluesView: React.FC<CluesViewProps> = ({ clues, suspects, onAddClue, onUpd
                             setEditForm({ ...editForm, linkedSuspects: updated });
                           }}
                           className={`px-3 py-1 text-xs border transition-colors ${(editForm.linkedSuspects || []).includes(s.id)
-                              ? 'bg-[#d4af37] text-black border-[#d4af37]'
-                              : 'bg-transparent border-white/10 text-white/40 hover:border-white/40'
+                            ? 'bg-[#d4af37] text-black border-[#d4af37]'
+                            : 'bg-transparent border-white/10 text-white/40 hover:border-white/40'
                             }`}
                         >
                           {s.name}

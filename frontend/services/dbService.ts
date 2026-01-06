@@ -114,6 +114,14 @@ class DbService {
         } as InvestigationCase;
     }
 
+    async deleteCase(caseId: string): Promise<void> {
+        await this.fetchJson('/api/cases', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ caseid: caseId })
+        });
+    }
+
     // --- Suspects ---
     async addSuspect(caseId: string, suspect: Partial<Suspect>): Promise<Suspect> {
         const id = await this.fetchJson('/api/parties', {
@@ -162,6 +170,16 @@ class DbService {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: suspectId })
+        });
+    }
+
+    async uploadSuspectImage(suspectId: string, file: File): Promise<void> {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        await fetch(`${API_URL}/api/parties/${suspectId}/image`, {
+            method: 'POST',
+            body: formData,
         });
     }
 

@@ -97,6 +97,17 @@ const Workspace: React.FC<WorkspaceProps> = ({ activeCase, onBack, onUpdateCase 
     }
   };
 
+  const handleExportCase = () => {
+    const dataStr = JSON.stringify(activeCase, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+    const exportFileDefaultName = `${activeCase.title.replace(/\s+/g, '_').toLowerCase()}_report.json`;
+
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-[#050505]">
       {/* Sidebar Navigation */}
@@ -146,8 +157,19 @@ const Workspace: React.FC<WorkspaceProps> = ({ activeCase, onBack, onUpdateCase 
           ))}
         </div>
 
-        <div className="p-6 text-[10px] text-white/20 uppercase tracking-widest border-t border-white/5 hidden lg:block">
-          &copy; 2024 Benoit Blanc Investigation
+        <div className="p-6 border-t border-white/5 flex flex-col gap-2 hidden lg:flex">
+          <button
+            onClick={handleExportCase}
+            className="w-full py-2 px-4 border border-white/10 hover:border-[#d4af37]/50 text-white/40 hover:text-[#d4af37] text-[10px] uppercase tracking-widest transition-all rounded-sm flex items-center justify-center gap-2"
+          >
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Export Archive
+          </button>
+          <div className="text-[10px] text-white/20 uppercase tracking-widest pt-2">
+            &copy; 2024 Benoit Blanc Investigation
+          </div>
         </div>
       </nav>
 
