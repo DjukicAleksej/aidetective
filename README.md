@@ -47,12 +47,9 @@ It helps investigators, writers, and mystery lovers **organize evidence, track t
 
 ### Backend
 - REST API with tagged endpoints
-- Database integration
-- AI interaction layer
+- Database integration with DuckDB
 
 ### AI
 - LLM-powered assistant
 - Context-aware case analysis
 - Natural language reasoning
-
----
