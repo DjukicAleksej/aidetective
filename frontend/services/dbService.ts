@@ -29,7 +29,11 @@ export class DbService {
                 involvedSuspects: t.involved_suspects,
                 isGap: t.is_gap
             })),
-            statements: (c.statements || []).map((s: any) => ({ ...s, speakerName: s.speaker_name })),
+            statements: (c.statements || []).map((s: any) => ({
+                ...s,
+                speakerName: s.speaker_name,
+                speakerId: s.speaker_id
+            })),
             theories: (c.theories || []).map((t: any) => ({
                 ...t,
                 linkedSuspects: t.linked_suspects,
@@ -140,6 +144,7 @@ export class DbService {
             .insert([{
                 case_id: caseId,
                 speaker_name: statement.speakerName,
+                speaker_id: statement.speakerId,
                 content: statement.content,
                 timestamp: statement.timestamp || new Date().toISOString(),
                 context: statement.context
@@ -149,7 +154,8 @@ export class DbService {
         if (error) throw error;
         return {
             ...data,
-            speakerName: data.speaker_name
+            speakerName: data.speaker_name,
+            speakerId: data.speaker_id
         } as Statement;
     }
 
