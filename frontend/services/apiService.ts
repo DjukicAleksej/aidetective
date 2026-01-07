@@ -2,9 +2,9 @@ import { InvestigationCase, Suspect, Clue, TimelineEvent, Statement, Theory } fr
 
 export class ApiService {
   private getEndpoint(path: string): string {
-    const baseUrl = window.location.origin;
-    return `${baseUrl}/api${path}`;
+    return `/api${path}`;
   }
+
 
   async fetchCases(): Promise<InvestigationCase[]> {
     try {

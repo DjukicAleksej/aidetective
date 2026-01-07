@@ -2,6 +2,8 @@
 
 from fastapi import FastAPI, WebSocket, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from typing import Dict
@@ -20,6 +22,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
+class TrustProxyMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        if request.headers.get("X-Forwarded-Proto") == "https":
+            request.scope["scheme"] = "https"
+        response = await call_next(request)
+        return response
+
+app.add_middleware(TrustProxyMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
